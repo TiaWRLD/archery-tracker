@@ -1,0 +1,26 @@
+{
+  "name": "archery-log",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "postinstall": "nuxt prepare",
+    "dev": "nuxt dev --host",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview"
+  },
+  "dependencies": {
+    "@vite-pwa/nuxt": "^0.10.6",
+    "dexie": "^4.0.10",
+    "ls": "^1.0.0",
+    "nuxt": "^3.15.1",
+    "scripts": "^0.1.0",
+    "vue": "^3.5.0"
+  },
+  "allowScripts": {
+    "esbuild@0.28.2": true,
+    "esbuild@0.25.12": true,
+    "fsevents@2.3.3": true,
+    "esbuild@0.24.2": true,
+    "esbuild@0.21.5": true
+  }
+}

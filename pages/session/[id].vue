@@ -8,6 +8,23 @@
       </div>
     </header>
 
+    <!-- modalità di inserimento -->
+    <div class="mode">
+      <div class="seg">
+        <button :class="{ on: mode === 'fast' }" @click="setMode('fast')">Rapida</button>
+        <button :class="{ on: mode === 'precise' }" @click="setMode('precise')">Precisa</button>
+      </div>
+      <select
+        v-if="mode === 'precise'"
+        v-model="face"
+        :disabled="faceLocked"
+        aria-label="Faccia del bersaglio"
+        @change="saveFace"
+      >
+        <option v-for="f in faceIds" :key="f" :value="f">{{ FACES[f].label }}</option>
+      </select>
+    </div>
+
     <!-- volée in corso -->
     <section class="current" aria-live="polite">
       <div v-for="i in session.arrowsPerEnd" :key="i" class="slot" :class="cls(currentArrows[i - 1]?.s)">
@@ -28,10 +45,14 @@
     </section>
 
     <!-- tastiera -->
-    <section class="pad">
+    <section v-if="mode === 'fast'" class="pad">
       <button v-for="s in SCORES" :key="s" class="key" :class="cls(s)" @click="tap(s)">{{ s }}</button>
-      <button class="undo" @click="undo" :disabled="!ends.length">Annulla ultima freccia</button>
     </section>
+
+    <!-- bersaglio -->
+    <TargetFace v-else :face="face" :marks="currentArrows" :ghosts="ghosts" @shot="onShot" />
+
+    <button class="undo" @click="undo" :disabled="!ends.length">Annulla ultima freccia</button>
 
     <!-- chiusura -->
     <div v-if="finishing" class="overlay">
@@ -53,6 +74,7 @@
 
 <script setup lang="ts">
 import { db, points, endTotal, SCORES, type Arrow, type End, type Score, type Session } from '~/utils/db'
+import { FACES, defaultFace, type FaceId } from '~/utils/targets'
 
 const id = Number(useRoute().params.id)
 const session = ref<Session>()
@@ -60,41 +82,57 @@ const ends = ref<End[]>([])
 const finishing = ref(false)
 const feeling = ref(0)
 const note = ref('')
+const mode = ref<'fast' | 'precise'>('fast')
+const face = ref<FaceId>('122')
+const faceIds = Object.keys(FACES) as FaceId[]
 let lock: WakeLockSentinel | undefined
 
 const perEnd = computed(() => session.value?.arrowsPerEnd ?? 6)
 const last = computed(() => ends.value.at(-1))
 const currentIsOpen = computed(() => !!last.value && last.value.arrows.length < perEnd.value)
 const currentArrows = computed<Arrow[]>(() => (currentIsOpen.value ? last.value!.arrows : []))
-const pastEnds = computed(() => {
-  const done = currentIsOpen.value ? ends.value.slice(0, -1) : ends.value
-  return [...done].reverse()
-})
+const doneEnds = computed(() => (currentIsOpen.value ? ends.value.slice(0, -1) : ends.value))
+const pastEnds = computed(() => [...doneEnds.value].reverse())
+const ghosts = computed(() => doneEnds.value.flatMap((e) => e.arrows))
 const total = computed(() => ends.value.reduce((t, e) => t + endTotal(e.arrows), 0))
 const arrowCount = computed(() => ends.value.reduce((n, e) => n + e.arrows.length, 0))
+// dopo la prima freccia con coordinate la faccia non si cambia più: x, y sono normalizzati su di essa
+const faceLocked = computed(() => ends.value.some((e) => e.arrows.some((a) => a.x != null)))
 
 onMounted(async () => {
   session.value = await db.sessions.get(id)
   if (!session.value) return navigateTo('/')
+  face.value = session.value.face ?? defaultFace(session.value.distance)
+  mode.value = session.value.face ? 'precise' : 'fast'
   ends.value = await db.ends.where('sessionId').equals(id).sortBy('index')
   try { lock = await navigator.wakeLock?.request('screen') } catch { /* non supportato */ }
 })
 onBeforeUnmount(() => lock?.release())
 
+async function saveFace() {
+  await db.sessions.update(id, { face: face.value })
+  if (session.value) session.value.face = face.value
+}
+async function setMode(m: 'fast' | 'precise') {
+  mode.value = m
+  if (m === 'precise' && !session.value?.face) await saveFace()
+}
+
 // salva subito ogni modifica: se l'app si chiude non si perde nulla
 const save = (e: End) =>
   db.ends.put({ sessionId: e.sessionId, index: e.index, arrows: e.arrows.map((a) => ({ ...a })) })
 
-function tap(s: Score) {
+function tap(s: Score, x?: number, y?: number) {
   navigator.vibrate?.(10)
   let e = last.value
   if (!e || e.arrows.length >= perEnd.value) {
     ends.value.push({ sessionId: id, index: ends.value.length, arrows: [] })
     e = ends.value[ends.value.length - 1] // versione reattiva
   }
-  e.arrows.push({ s })
+  e.arrows.push(x == null || y == null ? { s } : { s, x, y })
   save(e)
 }
+const onShot = (h: { s: Score; x: number; y: number }) => tap(h.s, h.x, h.y)
 
 function undo() {
   const e = last.value
@@ -129,12 +167,19 @@ header { display: flex; justify-content: space-between; align-items: center; }
 .totals span { color: var(--muted); font-size: .85rem; }
 .ghost { background: transparent; color: var(--muted); padding: 12px 8px; font-size: 1rem; }
 
+.mode { display: flex; gap: 8px; align-items: center; }
+.seg { display: flex; background: var(--panel); border-radius: 12px; padding: 3px; }
+.seg button { padding: 10px 14px; border-radius: 10px; background: transparent; color: var(--muted); font-weight: 700; }
+.seg button.on { background: var(--text); color: var(--bg); }
+.mode select { flex: 1; min-width: 0; background: var(--panel); color: var(--text); border: 0; border-radius: 12px; padding: 12px; font: inherit; }
+.mode select:disabled { opacity: .5; }
+
 .current { display: flex; gap: 6px; align-items: center; }
 .slot { flex: 1; aspect-ratio: 1; max-height: 64px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; font-size: 1.3rem; }
 .slot.empty { border: 2px dashed var(--miss); }
 .sum { min-width: 48px; text-align: right; font-size: 1.6rem; font-weight: 800; }
 
-.past { flex: 1; overflow-y: auto; display: grid; align-content: start; gap: 6px; }
+.past { flex: 1; min-height: 0; overflow-y: auto; display: grid; align-content: start; gap: 6px; }
 .pastEnd { display: flex; align-items: center; gap: 10px; background: var(--panel); padding: 6px 10px; border-radius: 10px; }
 .n { color: var(--muted); width: 1.5em; }
 .arrows { flex: 1; display: flex; gap: 4px; }
@@ -144,7 +189,7 @@ header { display: flex; justify-content: space-between; align-items: center; }
 .pad { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
 .key { height: 76px; border-radius: 16px; font-size: 1.7rem; font-weight: 800; }
 .key:active { transform: scale(.94); }
-.undo { grid-column: 1 / -1; background: var(--panel); height: 52px; border-radius: 14px; color: var(--muted); }
+.undo { background: var(--panel); height: 52px; border-radius: 14px; color: var(--muted); }
 .undo:disabled { opacity: .4; }
 
 /* colori della faccia del bersaglio */

@@ -1,9 +1,13 @@
 import Dexie, { type Table } from 'dexie'
+import type { FaceId } from '../../../Downloads/targets'
 
 export const SCORES = ['X', '10', '9', '8', '7', '6', '5', '4', '3', '2', '1', 'M'] as const
 export type Score = (typeof SCORES)[number]
 
-// x e y (opzionali, -1..1 dal centro) serviranno per il bersaglio toccabile
+// x e y (opzionali) solo per le frecce inserite in modalità precisa.
+// Posizione dell'impatto dal centro del bersaglio: 1 = bordo esterno della zona più esterna
+// della faccia (vedi Session.face e utils/targets.ts). x positivo = destra, y positivo = alto.
+// I mancati possono arrivare fino a ±1.2.
 export interface Arrow { s: Score; x?: number; y?: number }
 
 export interface Session {
@@ -15,6 +19,7 @@ export interface Session {
   feeling?: number
   note?: string
   closed?: boolean
+  face?: FaceId // non indicizzato: nessun bump di versione Dexie
 }
 
 export interface End { sessionId: number; index: number; arrows: Arrow[] }

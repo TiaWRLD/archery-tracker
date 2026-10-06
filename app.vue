@@ -1,5 +1,6 @@
 <template>
   <NuxtPage />
+  <PwaUpdate />
 </template>
 
 <script setup lang="ts">

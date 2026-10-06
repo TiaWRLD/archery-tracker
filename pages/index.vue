@@ -29,11 +29,13 @@
       <h2>Ultime sessioni</h2>
       <ul class="list">
         <li v-for="h in history" :key="h.s.id">
-          <div>
-            <strong>{{ fmtDate(h.s.date) }}</strong>
-            <span class="muted">{{ h.s.distance }} m, {{ h.arrows }} frecce</span>
-          </div>
-          <div class="avg">{{ h.arrows ? (h.total / h.arrows).toFixed(2) : '–' }}</div>
+          <NuxtLink :to="`/history/${h.s.id}`" class="item">
+            <div>
+              <strong>{{ fmtDate(h.s.date) }}</strong>
+              <span class="muted">{{ h.s.distance }} m, {{ h.arrows }} frecce</span>
+            </div>
+            <div class="avg">{{ h.arrows ? (h.total / h.arrows).toFixed(2) : '–' }}</div>
+          </NuxtLink>
         </li>
       </ul>
     </section>
@@ -89,7 +91,8 @@ h2 { font-size: 1.1rem; margin: 28px 0 8px; }
 .seg .on { background: var(--text); color: var(--bg); font-weight: 700; }
 .start { background: var(--gold); color: var(--black); font-weight: 800; font-size: 1.4rem; height: 72px; border-radius: 16px; }
 .list { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
-.list li { display: flex; justify-content: space-between; align-items: center; background: var(--panel); padding: 12px 14px; border-radius: 12px; }
+.list li { background: var(--panel); border-radius: 12px; }
+.item { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; color: inherit; text-decoration: none; }
 .list strong { display: block; }
 .avg { font-size: 1.6rem; font-weight: 800; }
 .muted { color: var(--muted); font-size: .9rem; }

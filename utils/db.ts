@@ -1,5 +1,5 @@
 import Dexie, { type Table } from 'dexie'
-import type { FaceId } from '../../../Downloads/targets'
+import type { FaceId } from './targets'
 
 export const SCORES = ['X', '10', '9', '8', '7', '6', '5', '4', '3', '2', '1', 'M'] as const
 export type Score = (typeof SCORES)[number]

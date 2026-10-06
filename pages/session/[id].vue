@@ -50,8 +50,7 @@
     </section>
 
     <!-- bersaglio -->
-    <TargetFace v-else :face="face" :marks="currentArrows" :ghosts="ghosts" @shot="onShot" />
-
+    <TargetFace v-else :face="face" :marks="marks" :ghosts="ghosts" @shot="onShot" />
     <button class="undo" @click="undo" :disabled="!ends.length">Annulla ultima freccia</button>
 
     <!-- chiusura -->
@@ -82,30 +81,33 @@ const ends = ref<End[]>([])
 const finishing = ref(false)
 const feeling = ref(0)
 const note = ref('')
-const mode = ref<'fast' | 'precise'>('fast')
+const mode = ref<'fast' | 'precise'>('precise')
+const hasXY = (a: Arrow) => a.x != null && a.y != null
+const marks = computed(() => currentArrows.value.filter(hasXY))
+const ghosts = computed(() => doneEnds.value.flatMap((e) => e.arrows).filter(hasXY))
 const face = ref<FaceId>('122')
 const faceIds = Object.keys(FACES) as FaceId[]
 let lock: WakeLockSentinel | undefined
-
 const perEnd = computed(() => session.value?.arrowsPerEnd ?? 6)
 const last = computed(() => ends.value.at(-1))
 const currentIsOpen = computed(() => !!last.value && last.value.arrows.length < perEnd.value)
 const currentArrows = computed<Arrow[]>(() => (currentIsOpen.value ? last.value!.arrows : []))
 const doneEnds = computed(() => (currentIsOpen.value ? ends.value.slice(0, -1) : ends.value))
 const pastEnds = computed(() => [...doneEnds.value].reverse())
-const ghosts = computed(() => doneEnds.value.flatMap((e) => e.arrows))
 const total = computed(() => ends.value.reduce((t, e) => t + endTotal(e.arrows), 0))
 const arrowCount = computed(() => ends.value.reduce((n, e) => n + e.arrows.length, 0))
 // dopo la prima freccia con coordinate la faccia non si cambia più: x, y sono normalizzati su di essa
 const faceLocked = computed(() => ends.value.some((e) => e.arrows.some((a) => a.x != null)))
 
 onMounted(async () => {
-  session.value = await db.sessions.get(id)
-  if (!session.value) return navigateTo('/')
-  face.value = session.value.face ?? defaultFace(session.value.distance)
-  mode.value = session.value.face ? 'precise' : 'fast'
+  const s = await db.sessions.get(id)
+  if (!s) return navigateTo('/')
+  session.value = s
   ends.value = await db.ends.where('sessionId').equals(id).sortBy('index')
-  try { lock = await navigator.wakeLock?.request('screen') } catch { /* non supportato */ }
+  face.value = s.face ?? defaultFace(s.distance)
+  const lastArrow = ends.value.at(-1)?.arrows.at(-1)
+  mode.value = lastArrow && !hasXY(lastArrow) ? 'fast' : 'precise'
+  try { lock = await navigator.wakeLock?.request('screen') } catch { /* non dovrebbe servire (o almeno spero) */ }
 })
 onBeforeUnmount(() => lock?.release())
 
@@ -113,12 +115,12 @@ async function saveFace() {
   await db.sessions.update(id, { face: face.value })
   if (session.value) session.value.face = face.value
 }
-async function setMode(m: 'fast' | 'precise') {
+function setMode(m: 'fast' | 'precise') {
   mode.value = m
-  if (m === 'precise' && !session.value?.face) await saveFace()
 }
 
-// salva subito ogni modifica: se l'app si chiude non si perde nulla
+const r4 = (n: number) => Math.round(n * 1e4) / 1e4
+
 const save = (e: End) =>
   db.ends.put({ sessionId: e.sessionId, index: e.index, arrows: e.arrows.map((a) => ({ ...a })) })
 
@@ -129,11 +131,14 @@ function tap(s: Score, x?: number, y?: number) {
     ends.value.push({ sessionId: id, index: ends.value.length, arrows: [] })
     e = ends.value[ends.value.length - 1] // versione reattiva
   }
-  e.arrows.push(x == null || y == null ? { s } : { s, x, y })
+  e.arrows.push(x == null || y == null ? { s } : { s, x: r4(x), y: r4(y) })
   save(e)
 }
-const onShot = (h: { s: Score; x: number; y: number }) => tap(h.s, h.x, h.y)
 
+async function onShot(h: { s: Score; x: number; y: number }) {
+  if (session.value?.face !== face.value) await saveFace()
+  tap(h.s, h.x, h.y)
+}
 function undo() {
   const e = last.value
   if (!e) return

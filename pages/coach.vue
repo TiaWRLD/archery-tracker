@@ -26,7 +26,7 @@
         <strong>{{ fmtDate(selected.s.date) }}</strong>
         <span class="muted"> · {{ selected.s.distance }} m, {{ selected.arrows }} frecce</span>
       </p>
-      <p class="muted">Il coach non è ancora collegato.</p>
+      <pre v-if="payload" class="debug">{{ JSON.stringify(payload, null, 2) }}</pre>
       <button class="other" @click="selected = undefined">Scegli un'altra sessione</button>
     </section>
   </main>
@@ -34,17 +34,22 @@
 
 <script setup lang="ts">
 import type { SessionSummary } from '~/utils/summaries'
+import { buildCoachSummary, type CoachSummary } from '~/utils/coachSummary'
 
 const route = useRoute()
 const items = ref<SessionSummary[]>([])
 const selected = ref<SessionSummary>()
 const loaded = ref(false)
 
-function pick(h: SessionSummary) {
-  selected.value = h
-  // TODO: calcolare il riassunto JSON e inviarlo al backend locale
-}
 
+const payload = ref<CoachSummary>()
+
+async function pick(h: SessionSummary) {
+  selected.value = h
+  payload.value = undefined
+  payload.value = await buildCoachSummary(h)
+  // TODO: inviare payload.value al backend locale
+}
 onMounted(async () => {
   items.value = await loadClosedSummaries()
   loaded.value = true
@@ -67,4 +72,5 @@ h1 { font-size: 2rem; margin: 8px 0 12px; }
 .muted { color: var(--muted); font-size: .9rem; }
 .panel { background: var(--panel); border-radius: 18px; padding: 16px; display: grid; gap: 12px; }
 .other { background: var(--bg); color: var(--text); height: 52px; border-radius: 12px; font-weight: 700; }
+.debug { background: var(--bg); border-radius: 12px; padding: 12px; font-size: .75rem; overflow-x: auto; white-space: pre-wrap; }
 </style>

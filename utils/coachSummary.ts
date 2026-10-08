@@ -2,18 +2,14 @@ import { db, endTotal, points, SCORES, type Arrow, type End } from '~/utils/db'
 import { faceOuterCm } from '~/utils/targets'
 import { groupOf, hasXY } from '~/utils/stats'
 import type { SessionSummary } from '~/utils/summaries'
+import { lang } from "~/utils/i18n";
 
-// Per ora fissa; con l'i18n verrà passata da fuori.
-export const COACH_LANG = 'it'
 
-/** Sotto questa soglia di frecce con coordinate il gruppo non è significativo. */
 export const MIN_GROUPING_ARROWS = 6
-/** Variazione di media per freccia oltre la quale il trend non è "stable". */
 const TREND_TOL = 0.25
 
 const r = (v: number, d = 2) => Number(v.toFixed(d))
 
-/** Media punti per freccia di un insieme di volée (pesata sulle frecce, regge le volée incomplete). */
 function avgOf(ends: End[]): number | null {
     const n = ends.reduce((t, e) => t + e.arrows.length, 0)
     if (!n) return null
@@ -34,8 +30,7 @@ function delta(later: number | null, earlier: number | null) {
 const dir = (v: number, tol: number, neg: string, pos: string) =>
     Math.abs(v) < tol ? 'centered' : v < 0 ? neg : pos
 
-export async function buildCoachSummary(h: SessionSummary, lang = COACH_LANG) {
-    const s = h.s
+export async function buildCoachSummary(h: SessionSummary, l: 'it' | 'en' = lang.value) {    const s = h.s
     const ends = (await db.ends.where('sessionId').equals(s.id!).toArray()).sort(
         (a, b) => a.index - b.index,
     )
@@ -87,7 +82,7 @@ export async function buildCoachSummary(h: SessionSummary, lang = COACH_LANG) {
             face: s.face ?? null,
             bow: s.bow ?? null,
             feeling: s.feeling ?? null, // scala come salvata nell'app
-            note: s.note ?? null,
+            note: s.note?.trim().slice(0,300) || null, //300 caratteri se no appesantisce troppo l'ai (potevo comprare un macbook più potente)
         },
         totals: {
             points: h.total,

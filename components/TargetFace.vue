@@ -15,8 +15,7 @@
       class="face"
       viewBox="-1.2 -1.2 2.4 2.4"
       role="img"
-      aria-label="Bersaglio"
-      @pointerdown.prevent="down"
+      :aria-label="t('tf.aria')"      @pointerdown.prevent="down"
       @pointermove="move"
       @pointerup="up"
       @pointercancel="cancel"
@@ -47,6 +46,7 @@
 import type { PropType } from 'vue'
 import type { Arrow, Score } from '~/utils/db'
 import { ringGeometry, scoreAt, scoreStyle, type FaceId } from '~/utils/targets'
+const { t } = useT()
 
 const props = defineProps({
   face: { type: String as PropType<FaceId>, required: true },

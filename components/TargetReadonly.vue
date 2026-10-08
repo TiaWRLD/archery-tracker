@@ -1,16 +1,13 @@
 <template>
-  <svg ref="svg" class="rosa" viewBox="-1.2 -1.2 2.4 2.4" role="img" aria-label="Rosata della sessione">
+  <svg ref="svg" class="rosa" viewBox="-1.2 -1.2 2.4 2.4" role="img" :aria-label="t('rosa.aria')">
     <rect x="-1.2" y="-1.2" width="2.4" height="2.4" class="bg" />
 
-    <!-- anelli: tratto sottile in unità SVG (u = unità per pixel), niente vector-effect -->
     <circle v-for="r in geo.rings" :key="r.n" :r="r.r" :fill="r.fill" :stroke="r.line" :stroke-width="u" />
     <circle :r="geo.xr" :fill="geo.xFill" stroke="#15171a" :stroke-width="u" />
 
-    <!-- crocette: prima tutti i contorni scuri, poi i tratti colorati, così nessuna crocetta ne copre un'altra -->
     <path :d="outline" class="cross" stroke="#15171a" :stroke-width="5 * u" />
     <path v-for="c in crosses" :key="c.i" :d="c.d" class="cross" :stroke="c.color" :stroke-width="2.2 * u" />
 
-    <!-- gruppo: cerchio che contiene tutte le frecce, con il suo centro -->
     <template v-if="showGroup && grp">
       <circle :cx="grp.cx" :cy="-grp.cy" :r="ringR" class="halo" stroke="#15171a" :stroke-width="4.5 * u" />
       <circle :cx="grp.cx" :cy="-grp.cy" :r="ringR" class="halo" stroke="#f2c230" :stroke-width="2 * u" :stroke-dasharray="`${7 * u} ${5 * u}`" />
@@ -25,6 +22,10 @@ import type { PropType } from 'vue'
 import type { Arrow } from '~/utils/db'
 import { ringGeometry, type FaceId } from '~/utils/targets'
 import { endColor, groupOf, hasXY } from '~/utils/stats'
+import { useT } from '~/utils/i18n'
+
+
+const { t } = useT()
 
 const props = defineProps({
   face: { type: String as PropType<FaceId>, required: true },

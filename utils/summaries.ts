@@ -21,7 +21,3 @@ export async function loadClosedSummaries(limit = 50): Promise<SessionSummary[]>
     }),
   )
 }
-
-// Quando arriverà l'i18n, la lingua verrà passata da fuori al posto di 'it-IT'.
-export const fmtDate = (t: number) =>
-  new Date(t).toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric', month: 'short' })

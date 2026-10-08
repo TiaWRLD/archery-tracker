@@ -1,26 +1,28 @@
 <template>
   <main class="page">
-    <NuxtLink to="/" class="back">‹ Home</NuxtLink>
-    <h1>Sessioni</h1>
+    <NuxtLink to="/" class="back">{{ t('nav.home') }}</NuxtLink>
+    <h1>{{ t('sessions.title') }}</h1>
 
     <ul v-if="items.length" class="list">
       <li v-for="h in items" :key="h.s.id">
         <NuxtLink :to="`/history/${h.s.id}`" class="item">
           <div>
             <strong>{{ fmtDate(h.s.date) }}</strong>
-            <span class="muted">{{ h.s.distance }} m, {{ h.arrows }} frecce</span>
+            <span class="muted">{{ h.s.distance }} m, {{ h.arrows }} {{ t('common.arrows') }}</span>
           </div>
-          <div class="avg">{{ h.arrows ? (h.total / h.arrows).toFixed(2) : '–' }}</div>
+          <div class="avg">{{ h.arrows ? fmtN(h.total / h.arrows, 2) : '–' }}</div>
         </NuxtLink>
       </li>
     </ul>
-    <p v-else-if="loaded" class="muted">Nessuna sessione ancora. Torna alla home e premi Inizia.</p>
+    <p v-else-if="loaded" class="muted">{{ t('sessions.empty') }}</p>
   </main>
 </template>
 
 <script setup lang="ts">
 import type { SessionSummary } from '~/utils/summaries'
+import { useT } from '~/utils/i18n'
 
+const { t, fmtDate, fmtN } = useT()
 const items = ref<SessionSummary[]>([])
 const loaded = ref(false)
 

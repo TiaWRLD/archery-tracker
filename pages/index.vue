@@ -1,40 +1,46 @@
 <template>
   <main class="page home">
-    <h1>Allenamento</h1>
+    <div class="top">
+      <h1>{{ t('home.title') }}</h1>
+      <LangSwitch />
+    </div>
 
     <NuxtLink v-if="open" :to="`/session/${open.id}`" class="resume">
-      Riprendi la sessione a {{ open.distance }} m
+      {{ t('home.resume', { d: open.distance }) }}
     </NuxtLink>
 
     <section class="setup">
       <div class="row">
-        <label for="dist">Distanza (m)</label>
+        <label for="dist">{{ t('home.distance') }}</label>
         <div class="stepper">
-          <button @click="distance = Math.max(5, distance - 5)" aria-label="Meno 5 metri">−</button>
+          <button @click="distance = Math.max(5, distance - 5)" :aria-label="t('home.minus')">−</button>
           <input id="dist" v-model.number="distance" type="number" inputmode="numeric" />
-          <button @click="distance += 5" aria-label="Più 5 metri">+</button>
+          <button @click="distance += 5" :aria-label="t('home.plus')">+</button>
         </div>
       </div>
       <div class="row">
-        <span>Frecce per volée</span>
+        <span>{{ t('home.perEnd') }}</span>
         <div class="seg">
           <button :class="{ on: perEnd === 3 }" @click="perEnd = 3">3</button>
           <button :class="{ on: perEnd === 6 }" @click="perEnd = 6">6</button>
         </div>
       </div>
-      <button class="start" @click="start">Inizia</button>
+      <button class="start" @click="start">{{ t('home.start') }}</button>
     </section>
 
-    <nav class="big" aria-label="Sezioni">
-      <NuxtLink to="/sessions" class="tile">Sessioni</NuxtLink>
-      <NuxtLink to="/coach" class="tile">Coach AI</NuxtLink>
+    <nav class="big" :aria-label="t('nav.sections')">
+      <NuxtLink to="/sessions" class="tile">{{ t('nav.sessions') }}</NuxtLink>
+      <NuxtLink to="/coach" class="tile">{{ t('nav.coach') }}</NuxtLink>
     </nav>
   </main>
 </template>
 
 <script setup lang="ts">
 import { db, type Session } from '~/utils/db'
+import { useT } from '~/utils/i18n'
 
+
+const { t } = useT()
 const distance = ref(18)
 const perEnd = ref<3 | 6>(6)
 const open = ref<Session>()
@@ -55,8 +61,8 @@ async function start() {
 </script>
 
 <style scoped>
-/* Colonna a tutta altezza: setup in alto, i due tasti si prendono lo spazio rimasto */
-.home { display: flex; flex-direction: column; min-height: 100dvh; box-sizing: border-box; }
+.top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.top h1 { margin: 0; }.home { display: flex; flex-direction: column; min-height: 100dvh; box-sizing: border-box; }
 h1 { font-size: 2rem; margin-bottom: 16px; }
 .resume { display: block; background: var(--gold); color: var(--black); font-weight: 700; padding: 16px; border-radius: 14px; text-align: center; text-decoration: none; margin-bottom: 16px; }
 .setup { background: var(--panel); border-radius: 18px; padding: 16px; display: grid; gap: 16px; }

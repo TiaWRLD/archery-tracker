@@ -35,4 +35,11 @@ export default defineNuxtConfig({
     },
     devOptions: { enabled: false },
   },
+
+  runtimeConfig: {
+    public: {
+      coachBackendUrl: '',
+      coachTimeoutMs: 60000,
+    },
+  },
 })

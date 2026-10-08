@@ -5,6 +5,9 @@
 </template>
 
 <script setup lang="ts">
+const { lang } = useT()
+useHead({ htmlAttrs: { lang } })
+
 onMounted(() => {
   // chiede al browser di non cancellare i dati in caso di poco spazio
   navigator.storage?.persist?.()

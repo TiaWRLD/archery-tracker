@@ -1,27 +1,27 @@
 <template>
   <main v-if="session" class="wrap">
     <header>
-      <button class="ghost" @click="finishing = true">Fine</button>
+      <button class="ghost" @click="finishing = true">{{ t('s.finish') }}</button>
       <div class="totals">
         <strong>{{ total }}</strong>
-        <span>{{ arrowCount }} frecce, media {{ arrowCount ? (total / arrowCount).toFixed(2) : '–' }}</span>
+        <span>{{ t('s.summary', { n: arrowCount, a: arrowCount ? fmtN(total / arrowCount, 2) : '–' }) }}</span>
       </div>
     </header>
 
     <!-- modalità di inserimento -->
     <div class="mode">
       <div class="seg">
-        <button :class="{ on: mode === 'fast' }" @click="setMode('fast')">Rapida</button>
-        <button :class="{ on: mode === 'precise' }" @click="setMode('precise')">Precisa</button>
+        <button :class="{ on: mode === 'fast' }" @click="setMode('fast')">{{ t('s.fast') }}</button>
+        <button :class="{ on: mode === 'precise' }" @click="setMode('precise')">{{ t('s.precise') }}</button>
       </div>
       <select
         v-if="mode === 'precise'"
         v-model="face"
         :disabled="faceLocked"
-        aria-label="Faccia del bersaglio"
+        :aria-label="t('s.faceAria')"
         @change="saveFace"
       >
-        <option v-for="f in faceIds" :key="f" :value="f">{{ FACES[f].label }}</option>
+        <option v-for="f in faceIds" :key="f" :value="f">{{ faceLabel(f) }}</option>
       </select>
     </div>
 
@@ -51,21 +51,20 @@
 
     <!-- bersaglio -->
     <TargetFace v-else :face="face" :marks="marks" :ghosts="ghosts" @shot="onShot" />
-    <button class="undo" @click="undo" :disabled="!ends.length">Annulla ultima freccia</button>
-
+    <button class="undo" @click="undo" :disabled="!ends.length">{{ t('s.undo') }}</button>
     <!-- chiusura -->
     <div v-if="finishing" class="overlay">
       <div class="sheet">
-        <h2>{{ arrowCount ? 'Com’è andata?' : 'Nessuna freccia registrata' }}</h2>
+        <h2>{{ arrowCount ? t('s.howWent') : t('s.noArrows') }}</h2>
         <template v-if="arrowCount">
           <div class="faces">
             <button v-for="n in 5" :key="n" :class="{ on: feeling === n }" @click="feeling = n">{{ n }}</button>
           </div>
-          <textarea v-model="note" rows="2" placeholder="Nota veloce (facoltativa)" />
-          <button class="save" @click="close">Salva sessione</button>
+          <textarea v-model="note" rows="2" :placeholder="t('s.notePh')" />
+          <button class="save" @click="close">{{ t('s.save') }}</button>
         </template>
-        <button v-else class="save" @click="discard">Elimina sessione</button>
-        <button class="ghost" @click="finishing = false">Continua a tirare</button>
+        <button v-else class="save" @click="discard">{{ t('s.discard') }}</button>
+        <button class="ghost" @click="finishing = false">{{ t('s.continue') }}</button>
       </div>
     </div>
   </main>
@@ -75,6 +74,7 @@
 import { db, points, endTotal, SCORES, type Arrow, type End, type Score, type Session } from '~/utils/db'
 import { FACES, defaultFace, type FaceId } from '~/utils/targets'
 
+const { t, fmtN, faceLabel } = useT()
 const id = Number(useRoute().params.id)
 const session = ref<Session>()
 const ends = ref<End[]>([])

@@ -1,19 +1,21 @@
 <template>
   <div v-if="$pwa && ($pwa.needRefresh || $pwa.offlineReady)" class="pwa-toast" role="status">
     <template v-if="$pwa.needRefresh">
-      <span>Nuova versione disponibile</span>
-      <button class="go" @click="$pwa.updateServiceWorker()">Aggiorna</button>
-      <button @click="$pwa.cancelPrompt()">Dopo</button>
+      <span>{{ t('pwa.new') }}</span>
+      <button class="go" @click="$pwa.updateServiceWorker()">{{ t('pwa.update') }}</button>
+      <button @click="$pwa.cancelPrompt()">{{ t('pwa.later') }}</button>
     </template>
     <template v-else>
-      <span>Pronta per l'uso offline</span>
-      <button @click="$pwa.cancelPrompt()">OK</button>
+      <span>{{ t('pwa.offline') }}</span>
+      <button @click="$pwa.cancelPrompt()">{{ t('pwa.ok') }}</button>
     </template>
   </div>
 </template>
 
 <script setup lang="ts">
+import { useT } from '~/utils/i18n'
 const { $pwa } = useNuxtApp()
+const { t } = useT()
 </script>
 
 <style scoped>

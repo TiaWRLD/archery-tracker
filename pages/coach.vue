@@ -33,8 +33,8 @@
 </template>
 
 <script setup lang="ts">
-import type { SessionSummary } from '~/utils/summaries'
-import { buildCoachSummary, type CoachSummary } from '~/utils/coachSummary'
+import type {SessionSummary} from '~/utils/summaries'
+import {buildCoachSummary, type CoachSummary} from '~/utils/coachSummary'
 
 const route = useRoute()
 const items = ref<SessionSummary[]>([])
@@ -50,6 +50,7 @@ async function pick(h: SessionSummary) {
   payload.value = await buildCoachSummary(h)
   // TODO: inviare payload.value al backend locale
 }
+
 onMounted(async () => {
   items.value = await loadClosedSummaries()
   loaded.value = true
@@ -61,16 +62,82 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-h1 { font-size: 2rem; margin: 8px 0 12px; }
-.back { display: inline-block; color: var(--muted); text-decoration: none; padding: 8px 0; }
-.intro { margin-bottom: 12px; }
-.list { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
-.list li { background: var(--panel); border-radius: 12px; }
-.item { display: flex; width: 100%; justify-content: space-between; align-items: center; padding: 12px 14px; color: inherit; text-align: left; background: none; }
-.list strong { display: block; }
-.avg { font-size: 1.6rem; font-weight: 800; }
-.muted { color: var(--muted); font-size: .9rem; }
-.panel { background: var(--panel); border-radius: 18px; padding: 16px; display: grid; gap: 12px; }
-.other { background: var(--bg); color: var(--text); height: 52px; border-radius: 12px; font-weight: 700; }
-.debug { background: var(--bg); border-radius: 12px; padding: 12px; font-size: .75rem; overflow-x: auto; white-space: pre-wrap; }
+h1 {
+  font-size: 2rem;
+  margin: 8px 0 12px;
+}
+
+.back {
+  display: inline-block;
+  color: var(--muted);
+  text-decoration: none;
+  padding: 8px 0;
+}
+
+.intro {
+  margin-bottom: 12px;
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.list li {
+  background: var(--panel);
+  border-radius: 12px;
+}
+
+.item {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 14px;
+  color: inherit;
+  text-align: left;
+  background: none;
+}
+
+.list strong {
+  display: block;
+}
+
+.avg {
+  font-size: 1.6rem;
+  font-weight: 800;
+}
+
+.muted {
+  color: var(--muted);
+  font-size: .9rem;
+}
+
+.panel {
+  background: var(--panel);
+  border-radius: 18px;
+  padding: 16px;
+  display: grid;
+  gap: 12px;
+}
+
+.other {
+  background: var(--bg);
+  color: var(--text);
+  height: 52px;
+  border-radius: 12px;
+  font-weight: 700;
+}
+
+.debug {
+  background: var(--bg);
+  border-radius: 12px;
+  padding: 12px;
+  font-size: .75rem;
+  overflow-x: auto;
+  white-space: pre-wrap;
+}
 </style>

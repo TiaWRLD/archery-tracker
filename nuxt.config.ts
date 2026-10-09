@@ -4,7 +4,7 @@ export default defineNuxtConfig({
   modules: ['@vite-pwa/nuxt'],
   app: {
     head: {
-      title: 'Archery Log',
+      title: 'Archery Tracker',
       viewport: 'width=device-width, initial-scale=1, viewport-fit=cover',
       meta: [{ name: 'theme-color', content: '#1e2a24' }],
       link: [{ rel: 'apple-touch-icon', href: '/icon-192.png' }],
@@ -14,8 +14,8 @@ export default defineNuxtConfig({
     registerType: 'prompt',
     manifest: {
       id: '/',
-      name: 'Archery Log',
-      short_name: 'Archery',
+      name: 'Archery Tracker',
+      short_name: 'ArcheryTracker',
       lang: 'it',
       start_url: '/',
       scope: '/',
